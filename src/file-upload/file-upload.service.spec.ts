@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as fs from 'fs';
 import { promisify } from 'util';
 import { pipeline, Readable } from 'stream';
+
 import { FileUploadService } from './file-upload.service';
 
 describe('FileUploadService', () => {

@@ -21,7 +21,7 @@ describe('FileUploadController', () => {
   it('should upload file', async () => {
     const req = {
       isMultipart: () => true,
-      multipart: (handler: any, callback: any) => {
+      multipart: (handler, callback) => {
         handler('field', 'value', 'filename').then(() => {
           callback(null);
         });
