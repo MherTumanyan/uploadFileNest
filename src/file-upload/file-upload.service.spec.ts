@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FileUploadService } from './file-upload.service';
 import * as fs from 'fs';
-import * as util from 'util';
-import stream = require('stream');
+import { promisify } from 'util';
+import { pipeline, Readable } from 'stream';
+import { FileUploadService } from './file-upload.service';
 
 describe('FileUploadService', () => {
   let service: FileUploadService;
@@ -20,11 +20,11 @@ describe('FileUploadService', () => {
   });
 
   it('should save file to directory', async () => {
-    const file = stream.Readable.from(['test']);
+    const file = Readable.from(['test']);
 
-    const pipeline = util.promisify(stream.pipeline);
+    const myPipeline = promisify(pipeline);
     const writeStream = fs.createWriteStream(`uploads/test.txt`);
-    await pipeline(file, writeStream);
+    await myPipeline(file, writeStream);
 
     expect(fs.existsSync('uploads/test.txt')).toBe(true);
     fs.unlinkSync('uploads/test.txt');

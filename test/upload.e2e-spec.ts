@@ -23,24 +23,29 @@ describe('FileUploadService', () => {
   afterAll(async () => {
     await app.close();
   });
-  async function waitForFileToExist(filePath: string, maxWaitTimeMs = 500): Promise<void> {
+  async function waitForFileToExist(
+    filePath: string,
+    maxWaitTimeMs = 500,
+  ): Promise<void> {
     const startTime = Date.now();
     while (!fs.existsSync(filePath) && Date.now() - startTime < maxWaitTimeMs) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     if (!fs.existsSync(filePath)) {
-      throw new Error(`File '${filePath}' was not created within ${maxWaitTimeMs} ms`);
+      throw new Error(
+        `File '${filePath}' was not created within ${maxWaitTimeMs} ms`,
+      );
     }
   }
-  
+
   it('should upload file successfully', async () => {
     const filename = 'test.txt';
     const fileData = 'File uploaded successfully';
     const boundary = 'my-boundary';
-  
+
     // create a multipart/form-data request payload
     const payload = `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${filename}"\r\nContent-Type: text/plain\r\n\r\n${fileData}\r\n--${boundary}--`;
-  
+
     const response = await app.inject({
       method: 'POST',
       url: '/files/uploadFile',
@@ -49,16 +54,16 @@ describe('FileUploadService', () => {
       },
       payload,
     });
-  
+
     expect(response.statusCode).toEqual(200);
-  
+
     const filePath = `uploads/${filename}`;
-  
+
     await waitForFileToExist(filePath);
-  
+
     const fileContent = fs.readFileSync(filePath, 'utf8');
     expect(fileContent).toBe(fileData);
-  
+    // we can also delete the created file
     fs.unlinkSync(filePath);
   });
-}) ;
+});

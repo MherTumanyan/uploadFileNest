@@ -1,17 +1,22 @@
-import { HttpException, BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { AppResponseDto } from '../utils/app-response.dto';
-
+import {
+  HttpException,
+  BadRequestException,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import * as fs from 'fs';
-import stream = require('stream');
-import fastify = require('fastify');
 import * as util from 'util';
+import { FastifyRequest, FastifyReply} from 'fastify';
+import { pipeline } from 'stream';
+
+import { AppResponseDto } from '../utils/app-response.dto';
 
 @Injectable()
 export class FileUploadService {
   // upload file
   async uploadFile(
-    req: fastify.FastifyRequest,
-    res: fastify.FastifyReply<any>,
+    req: FastifyRequest,
+    res: FastifyReply<any>,
   ): Promise<any> {
     try {
       //Check request is multipart
@@ -23,11 +28,11 @@ export class FileUploadService {
           ),
         );
         return;
-      }
+      }      
       //@ts-ignore
       const mp = await req.multipart(this.handler, onEnd);
 
-      mp.on('field', function (key: any, value: any) {
+      mp.on('field', (key: string, value: any) => {
         Logger.log('form-data', key, value);
       });
       // Uploading finished
@@ -42,16 +47,19 @@ export class FileUploadService {
             new AppResponseDto(200, undefined, 'Data uploaded successfully'),
           );
       }
-    } catch (error) {}
+    } catch (error) {
+      Logger.error(error);
+    }
   }
   //Save files in directory
   async handler(field: string, file: any, filename: string): Promise<void> {
-    const pipeline = util.promisify(stream.pipeline);
-    const writeStream = fs.createWriteStream(`uploads/${filename}`); //File path
     try {
-      await pipeline(file, writeStream);
+      const myPipeline = util.promisify(pipeline);
+      const writeStream = fs.createWriteStream(`uploads/${filename}`); //File path
+      await myPipeline(file, writeStream);
     } catch (err) {
       Logger.error('Pipeline failed', err);
+      return
     }
   }
 }
